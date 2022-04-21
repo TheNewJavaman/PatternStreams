@@ -1,6 +1,6 @@
 # PatternStreams
 
-Simplifies searching and patching runtime memory using syntax similar to Java streams
+Simplifies searching and patching runtime memory in C++ using syntax similar to Java streams
 
 ## Preview
 
