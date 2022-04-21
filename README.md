@@ -8,5 +8,5 @@ Simplifies searching and patching runtime memory in C++ using syntax similar to 
 
 ## Notes
 
-- Uses C++ 20, MCVC v143
+- Uses C++ 20, MSVC v143
 - Only supports Windows
