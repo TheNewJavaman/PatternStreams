@@ -1,8 +1,9 @@
 #pragma once
 
 #define WIN32_LEAN_AND_MEAN
-#include <map>
 #include <Windows.h>
+
+#include <map>
 
 #include "PatternStreams.h"
 
@@ -12,11 +13,15 @@ struct BytePtrInterval
     size_t Length;
 };
 
-namespace Info
+class PatternInfo
 {
-    static void InitModuleInfo(std::string module);
-    static inline std::map<std::string, BytePtrInterval> ModuleIntervals;
+public:
+    static BytePtrInterval GetModuleInterval(const std::string& module);
 
-    static void InitProcessInfo();
+    static HANDLE GetProcessHandle();
+
+private:
+    static inline std::map<std::string, BytePtrInterval> ModuleIntervals;
+    
     static inline HANDLE ProcessHandle = nullptr;
-}
+};

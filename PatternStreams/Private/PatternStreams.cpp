@@ -61,9 +61,8 @@ bool PatternInRange::IsMatch(BytePtr& ptr)
 
 PatternStream::PatternStream(Pattern pattern, const std::string& module)
 {
-    Info::InitModuleInfo(module);
-    const auto info = Info::ModuleIntervals.at(module);
-    for (BytePtr i = info.Start; i < info.Start + info.Length; i++)
+    const auto interval = PatternInfo::GetModuleInterval(module);
+    for (BytePtr i = interval.Start; i < interval.Start + interval.Length; i++)
     {
         if (pattern.IsMatch(i))
         {
@@ -88,15 +87,53 @@ PatternStream PatternStream::operator&(Pattern pattern) const
 
 PatternStream PatternStream::operator|(const PatternStream& other) const
 {
+    PatternStream stream(size() + other.size());
+    stream.insert(stream.begin(), begin(), end());
+    stream.insert(stream.begin() + static_cast<int64_t>(size()), other.begin(), other.end());
+    return stream;
+}
+
+PatternStream PatternStream::operator+(const int64_t offset) const
+{
     PatternStream stream = *this;
-    for (const auto& i : other)
+    for (auto& i : stream)
     {
-        stream.push_back(i);
+        i += offset;
     }
     return stream;
+}
+
+PatternStream PatternStream::operator-(const int64_t offset) const
+{
+    PatternStream stream = *this;
+    for (auto& i : stream)
+    {
+        i -= offset;
+    }
+    return stream;
+}
+
+PatternStream PatternStream::operator<(const ByteBuffer& buffer) const
+{
+    const PatternStream stream = *this;
+    for (const auto& i : stream)
+    {
+        PatternPatcher::Write(i, buffer, 0);
+    }
+    return *this;
 }
 
 BytePtr PatternStream::FirstOrNullptr() const
 {
     return empty() ? nullptr : at(0);
+}
+
+PatternStream::PatternStream(const size_t capacity) : std::vector<BytePtr>(capacity)
+{
+}
+
+bool PatternPatcher::Write(const BytePtr ptr, const ByteBuffer& buffer, const int64_t offset)
+{
+    const auto handle = PatternInfo::GetProcessHandle();
+    return WriteProcessMemory(handle, ptr + offset, buffer.data(), buffer.size(), nullptr);
 }

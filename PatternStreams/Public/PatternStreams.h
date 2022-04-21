@@ -16,11 +16,11 @@ public:
 
     Byte Value;
     bool IsWildcard;
-
+    
     static PatternByte Any();
 };
 
-constexpr PatternByte Any = PatternByte::Any();
+static inline PatternByte Any = PatternByte::Any();
 
 class Pattern : public std::vector<PatternByte>
 {
@@ -57,8 +57,21 @@ public:
 
     PatternStream operator|(const PatternStream& other) const;
 
+    PatternStream operator+(int64_t offset) const;
+    
+    PatternStream operator-(int64_t offset) const;
+
+    PatternStream operator<(const ByteBuffer& buffer) const;
+    
     BytePtr FirstOrNullptr() const;
 
 private:
     PatternStream() = default;
+
+    PatternStream(size_t capacity);
 };
+
+namespace PatternPatcher
+{
+    bool Write(BytePtr ptr, const ByteBuffer& buffer, int64_t offset = 0);
+}
