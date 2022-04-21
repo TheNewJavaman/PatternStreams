@@ -3,75 +3,74 @@
 #include <string>
 #include <vector>
 
-typedef uint8_t Byte;
+namespace PS {
+    typedef uint8_t Byte;
 
-typedef uint8_t* BytePtr;
+    typedef uint8_t* BytePtr;
 
-typedef std::vector<Byte> ByteBuffer;
+    typedef std::vector<Byte> ByteBuffer;
 
-class PatternByte
-{
-public:
-    PatternByte(Byte value);
+    class PatternByte {
+    public:
+        PatternByte(Byte value);
 
-    Byte Value;
-    bool IsWildcard;
-    
-    static PatternByte Any();
-};
+        Byte Value;
+        bool IsWildcard;
 
-static inline PatternByte Any = PatternByte::Any();
+        static PatternByte Any();
+    };
 
-class Pattern : public std::vector<PatternByte>
-{
-public:
-    Pattern(std::initializer_list<PatternByte> l);
+    static inline PatternByte Any = PatternByte::Any();
 
-    virtual bool IsMatch(BytePtr& ptr);
-};
+    class Pattern : public std::vector<PatternByte> {
+    public:
+        Pattern(std::initializer_list<PatternByte> l);
 
-struct OffsetInterval
-{
-    int64_t Offset;
-    size_t Length;
-};
+        virtual bool IsMatch(BytePtr& ptr) const;
+    };
 
-class PatternInRange : public Pattern
-{
-public:
-    PatternInRange(std::initializer_list<PatternByte> l, OffsetInterval range = {0x00, 0x40},  bool replaceExisting = false);
+    struct OffsetInterval {
+        int64_t Offset;
+        size_t Length;
+    };
 
-    bool IsMatch(BytePtr& ptr) override;
+    class PatternInRange : public Pattern {
+    public:
+        PatternInRange(const Pattern& pattern, OffsetInterval range = { 0x00, 0x40 }, bool replaceExisting = false);
 
-private:
-    OffsetInterval Range;
-    bool ReplaceExisting;
-};
+        bool IsMatch(BytePtr& ptr) const override;
 
-class PatternStream : public std::vector<BytePtr>
-{
-public:
-    PatternStream(Pattern pattern, const std::string& module = "");
+    private:
+        OffsetInterval Range;
+        bool ReplaceExisting;
+    };
 
-    PatternStream operator&(Pattern pattern) const;
+    struct AddOffset {
+        int64_t Offset;
+    };
 
-    PatternStream operator|(const PatternStream& other) const;
+    typedef ByteBuffer WriteBuffer;
 
-    PatternStream operator+(int64_t offset) const;
-    
-    PatternStream operator-(int64_t offset) const;
+    class PatternStream : public std::vector<BytePtr> {
+    public:
+        PatternStream(std::initializer_list<PatternByte> l);
 
-    PatternStream operator<(const ByteBuffer& buffer) const;
-    
-    BytePtr FirstOrNullptr() const;
+        PatternStream(const Pattern& pattern, const std::string& module = "");
 
-private:
-    PatternStream() = default;
+        PatternStream operator|(const Pattern& pattern) const;
 
-    PatternStream(size_t capacity);
-};
+        PatternStream operator|(const AddOffset& offset) const;
 
-namespace PatternPatcher
-{
-    bool Write(BytePtr ptr, const ByteBuffer& buffer, int64_t offset = 0);
-}
+        PatternStream operator|(const WriteBuffer& buffer) const;
+
+        BytePtr FirstOrNullptr() const;
+
+    private:
+        PatternStream() = default;
+
+        PatternStream(size_t capacity);
+    };
+
+    namespace PatternPatcher {
+        bool Write(BytePtr ptr, const ByteBuffer& buffer, int64_t offset = 0);
+    }}
