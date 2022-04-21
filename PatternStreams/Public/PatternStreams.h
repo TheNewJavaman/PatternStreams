@@ -1,14 +1,13 @@
 #pragma once
 
+#include <functional>
 #include <string>
 #include <vector>
 
 namespace PS {
-    typedef uint8_t Byte;
+    typedef uint8_t Byte, *BytePtr;
 
-    typedef uint8_t* BytePtr;
-
-    typedef std::vector<Byte> ByteBuffer;
+    typedef std::vector<Byte> ByteBuffer, WriteBuffer;
 
     class PatternByte {
     public:
@@ -49,7 +48,7 @@ namespace PS {
         int64_t Offset;
     };
 
-    typedef ByteBuffer WriteBuffer;
+    typedef std::function<void(BytePtr&)> BytePtrFunc, ForEach;
 
     class PatternStream : public std::vector<BytePtr> {
     public:
@@ -61,7 +60,9 @@ namespace PS {
 
         PatternStream operator|(const AddOffset& offset) const;
 
-        PatternStream operator|(const WriteBuffer& buffer) const;
+        PatternStream operator|(const ByteBuffer& buffer) const;
+
+        PatternStream operator|(const BytePtrFunc& func) const;
 
         BytePtr FirstOrNullptr() const;
 
@@ -73,4 +74,5 @@ namespace PS {
 
     namespace PatternPatcher {
         bool Write(BytePtr ptr, const ByteBuffer& buffer, int64_t offset = 0);
-    }}
+    }
+}

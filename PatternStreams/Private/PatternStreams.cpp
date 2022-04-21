@@ -31,14 +31,15 @@ namespace PS {
         for (size_t i = 0; i < Range.Length; i++) {
             bool fullMatch = true;
             for (size_t j = 0; j < this->size(); j++) {
-                if (!this->at(j).IsWildcard && this->at(j).Value != *(ptr + i + j)) {
+                if (!this->at(j).IsWildcard && this->at(j).Value != *(ptr + Range.Offset + i + j)) {
                     fullMatch = false;
                     break;
                 }
             }
             if (fullMatch) {
-                if (ReplaceExisting)
+                if (ReplaceExisting) {
                     ptr += i;
+                }
                 return true;
             }
         }
@@ -75,12 +76,20 @@ namespace PS {
         return stream;
     }
 
-    PatternStream PatternStream::operator|(const WriteBuffer& buffer) const {
-        const PatternStream stream = *this;
+    PatternStream PatternStream::operator|(const ByteBuffer& buffer) const {
+        PatternStream stream = *this;
         for (const auto& i : stream) {
             PatternPatcher::Write(i, buffer, 0);
         }
-        return *this;
+        return stream;
+    }
+
+    PatternStream PatternStream::operator|(const BytePtrFunc& func) const {
+        PatternStream stream = *this;
+        for (auto& i : stream) {
+            func(i);
+        }
+        return stream;
     }
 
     BytePtr PatternStream::FirstOrNullptr() const {
