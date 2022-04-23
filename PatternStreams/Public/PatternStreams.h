@@ -7,8 +7,10 @@
 namespace PS {
     typedef uint8_t Byte, *BytePtr;
 
-    typedef std::vector<Byte> ByteBuffer, WriteBuffer;
+    typedef std::vector<Byte> ByteBuffer;
 
+    typedef std::function<void(BytePtr&)> BytePtrFunc;
+    
     class PatternByte {
     public:
         PatternByte(Byte value);
@@ -48,7 +50,17 @@ namespace PS {
         int64_t Offset;
     };
 
-    typedef std::function<void(BytePtr&)> BytePtrFunc, ForEach;
+    class WriteBuffer : public ByteBuffer {
+    public:
+        WriteBuffer(std::initializer_list<Byte> l);
+    };
+    
+    class WriteBufferAndOffset : public WriteBuffer {
+    public:
+        WriteBufferAndOffset(std::initializer_list<Byte> l);
+    };
+    
+    class ForEach : public BytePtrFunc {};
 
     class PatternStream : public std::vector<BytePtr> {
     public:
@@ -60,9 +72,11 @@ namespace PS {
 
         PatternStream operator|(const AddOffset& offset) const;
 
-        PatternStream operator|(const ByteBuffer& buffer) const;
+        PatternStream operator|(const WriteBuffer& buffer) const;
+        
+        PatternStream operator|(const WriteBufferAndOffset& buffer) const;
 
-        PatternStream operator|(const BytePtrFunc& func) const;
+        PatternStream operator|(const ForEach& func) const;
 
         BytePtr FirstOrNullptr() const;
 
@@ -73,6 +87,7 @@ namespace PS {
     };
 
     namespace PatternPatcher {
-        bool Write(BytePtr ptr, const ByteBuffer& buffer, int64_t offset = 0);
-    }
-}
+        bool WriteBuffer(BytePtr ptr, const ByteBuffer& buffer);
+
+        bool WriteBufferAndOffset(BytePtr& ptr, const ByteBuffer& buffer);
+    }}

@@ -38,13 +38,17 @@ namespace PS {
             }
             if (fullMatch) {
                 if (ReplaceExisting) {
-                    ptr += i;
+                    ptr += i + Range.Offset;
                 }
                 return true;
             }
         }
         return false;
     }
+
+    WriteBuffer::WriteBuffer(const std::initializer_list<Byte> l) : ByteBuffer(l) {}
+
+    WriteBufferAndOffset::WriteBufferAndOffset(const std::initializer_list<Byte> l) : WriteBuffer(l) {}
 
     PatternStream::PatternStream(const std::initializer_list<PatternByte> l) : PatternStream(l, "") {}
 
@@ -76,15 +80,23 @@ namespace PS {
         return stream;
     }
 
-    PatternStream PatternStream::operator|(const ByteBuffer& buffer) const {
+    PatternStream PatternStream::operator|(const WriteBuffer& buffer) const {
         PatternStream stream = *this;
         for (const auto& i : stream) {
-            PatternPatcher::Write(i, buffer, 0);
+            PatternPatcher::WriteBuffer(i, buffer);
         }
         return stream;
     }
 
-    PatternStream PatternStream::operator|(const BytePtrFunc& func) const {
+    PatternStream PatternStream::operator|(const WriteBufferAndOffset& buffer) const {
+        PatternStream stream = *this;
+        for (auto& i : stream) {
+            PatternPatcher::WriteBufferAndOffset(i, buffer);
+        }
+        return stream;
+    }
+
+    PatternStream PatternStream::operator|(const ForEach& func) const {
         PatternStream stream = *this;
         for (auto& i : stream) {
             func(i);
@@ -98,8 +110,16 @@ namespace PS {
 
     PatternStream::PatternStream(const size_t capacity) : std::vector<BytePtr>(capacity) {}
 
-    bool PatternPatcher::Write(const BytePtr ptr, const ByteBuffer& buffer, const int64_t offset) {
+    bool PatternPatcher::WriteBuffer(const BytePtr ptr, const ByteBuffer& buffer) {
         const auto handle = PatternInfo::GetProcessHandle();
-        return WriteProcessMemory(handle, ptr + offset, buffer.data(), buffer.size(), nullptr);
+        return WriteProcessMemory(handle, ptr, buffer.data(), buffer.size(), nullptr);
+    }
+
+    bool PatternPatcher::WriteBufferAndOffset(BytePtr& ptr, const ByteBuffer& buffer) {
+        if (!WriteBuffer(ptr, buffer)) {
+            return false;
+        }
+        ptr += buffer.size();
+        return true;
     }
 }
