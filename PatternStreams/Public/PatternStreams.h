@@ -62,6 +62,8 @@ namespace PS {
     
     class ForEach : public BytePtrFunc {};
 
+    class FirstOrNullptr {};
+
     class PatternStream : public std::vector<BytePtr> {
     public:
         PatternStream(std::initializer_list<PatternByte> l);
@@ -78,7 +80,7 @@ namespace PS {
 
         PatternStream operator|(const ForEach& func) const;
 
-        BytePtr FirstOrNullptr() const;
+        BytePtr operator|(const FirstOrNullptr& first) const;
 
     private:
         PatternStream() = default;

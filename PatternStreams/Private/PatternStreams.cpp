@@ -104,7 +104,7 @@ namespace PS {
         return stream;
     }
 
-    BytePtr PatternStream::FirstOrNullptr() const {
+    BytePtr PatternStream::operator|(const FirstOrNullptr& first) const {
         return empty() ? nullptr : at(0);
     }
 
