@@ -3,7 +3,7 @@
 #include <Psapi.h>
 
 namespace PS {
-    BytePtrInterval PatternInfo::GetModuleInterval(const std::string& module) {
+    BytePtrInterval ProcessInfo::GetModuleInterval(const std::string& module) {
         const auto found = ModuleIntervals.find(module);
         if (found == ModuleIntervals.end()) {
             const auto handle = GetModuleHandleA(module.empty() ? nullptr : module.c_str());
@@ -17,7 +17,7 @@ namespace PS {
         return found->second;
     }
 
-    HANDLE PatternInfo::GetProcessHandle() {
+    HANDLE ProcessInfo::GetProcessHandle() {
         if (ProcessHandle == nullptr) {
             ProcessHandle = GetCurrentProcess();
         }

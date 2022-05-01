@@ -9,87 +9,43 @@ namespace PS {
 
     typedef std::vector<Byte> ByteBuffer;
 
-    typedef std::function<void(BytePtr&)> BytePtrFunc;
-    
+    typedef std::function<void(BytePtr& ptr)> BytePtrFunc;
+
+    typedef std::function<void(const BytePtr& ptr)> ConstBytePtrFunc;
+
     class PatternByte {
     public:
-        PatternByte(Byte value);
-
-        Byte Value;
-        bool IsWildcard;
-
-        static PatternByte Any();
+        PatternByte(const Byte value) : value(value) {}
+        
+        Byte value = 0x00;
+        bool isWildcard = false;
     };
 
-    static inline PatternByte Any = PatternByte::Any();
+    inline constexpr PatternByte Any = { .isWildcard = true };
 
     class Pattern : public std::vector<PatternByte> {
     public:
-        Pattern(std::initializer_list<PatternByte> l);
+        Pattern(std::initializer_list<PatternByte> l) : std::vector(l) {}
 
-        virtual bool IsMatch(BytePtr& ptr) const;
+        bool IsMatch(const BytePtr& ptr) const;
     };
-
-    struct OffsetInterval {
-        int64_t Offset;
-        size_t Length;
-    };
-
-    class PatternInRange : public Pattern {
-    public:
-        PatternInRange(const Pattern& pattern, OffsetInterval range = { 0x00, 0x40 }, bool replaceExisting = false);
-
-        bool IsMatch(BytePtr& ptr) const override;
-
-    private:
-        OffsetInterval Range;
-        bool ReplaceExisting;
-    };
-
-    struct AddOffset {
-        int64_t Offset;
-    };
-
-    class WriteBuffer : public ByteBuffer {
-    public:
-        WriteBuffer(std::initializer_list<Byte> l);
-    };
-    
-    class WriteBufferAndOffset : public WriteBuffer {
-    public:
-        WriteBufferAndOffset(std::initializer_list<Byte> l);
-    };
-    
-    class ForEach : public BytePtrFunc {};
-
-    class FirstOrNullptr {};
 
     class PatternStream : public std::vector<BytePtr> {
     public:
-        PatternStream(std::initializer_list<PatternByte> l);
-
         PatternStream(const Pattern& pattern, const std::string& module = "");
 
-        PatternStream operator|(const Pattern& pattern) const;
+        PatternStream HasPatternInRange(const Pattern& pattern, int64_t rangeOffset, size_t rangeLength,
+                                        bool replaceExistingMatch = false) const;
 
-        PatternStream operator|(const AddOffset& offset) const;
+        PatternStream AddOffset(int64_t offset) const;
 
-        PatternStream operator|(const WriteBuffer& buffer) const;
-        
-        PatternStream operator|(const WriteBufferAndOffset& buffer) const;
+        PatternStream ForEach(const BytePtrFunc& func) const;
 
-        PatternStream operator|(const ForEach& func) const;
+        PatternStream ForEach(const ConstBytePtrFunc& func) const;
 
-        BytePtr operator|(const FirstOrNullptr& first) const;
+        BytePtr FirstOrNullPtr() const;
 
     private:
         PatternStream() = default;
-
-        PatternStream(size_t capacity);
     };
-
-    namespace PatternPatcher {
-        bool WriteBuffer(BytePtr ptr, const ByteBuffer& buffer);
-
-        bool WriteBufferAndOffset(BytePtr& ptr, const ByteBuffer& buffer);
-    }}
+}

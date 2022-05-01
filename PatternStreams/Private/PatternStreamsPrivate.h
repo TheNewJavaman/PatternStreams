@@ -13,7 +13,7 @@ namespace PS {
         size_t Length;
     };
 
-    class PatternInfo {
+    class ProcessInfo {
     public:
         static BytePtrInterval GetModuleInterval(const std::string& module);
 
