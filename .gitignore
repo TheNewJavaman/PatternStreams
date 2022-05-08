@@ -8,3 +8,4 @@ riderModule.iml
 *.user
 x64/
 */x64/
+cmake-build-*/

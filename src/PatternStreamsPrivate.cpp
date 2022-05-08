@@ -11,7 +11,7 @@ namespace PS {
             MODULEINFO moduleInfo;
             GetModuleInformation(GetProcessHandle(), handle, &moduleInfo, sizeof moduleInfo);
             interval.Length = moduleInfo.SizeOfImage;
-            ModuleIntervals.insert({module, interval});
+            ModuleIntervals.insert({ module, interval });
             return interval;
         }
         return found->second;

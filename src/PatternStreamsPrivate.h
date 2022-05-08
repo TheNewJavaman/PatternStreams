@@ -16,12 +16,10 @@ namespace PS {
     class ProcessInfo {
     public:
         static BytePtrInterval GetModuleInterval(const std::string& module);
-
         static HANDLE GetProcessHandle();
 
     private:
         static inline std::map<std::string, BytePtrInterval> ModuleIntervals;
-
         static inline HANDLE ProcessHandle = nullptr;
     };
 }
