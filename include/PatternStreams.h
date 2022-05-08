@@ -5,9 +5,7 @@
 #include <vector>
 
 namespace PS {
-    typedef uint8_t Byte, *BytePtr;
-
-    typedef std::vector<Byte> ByteBuffer;
+    typedef uint8_t Byte, * BytePtr;
 
     typedef std::function<void(BytePtr& ptr)> BytePtrFunc;
 
@@ -15,17 +13,16 @@ namespace PS {
 
     class PatternByte {
     public:
-        PatternByte(const Byte value) : value(value) {}
-        
-        Byte value = 0x00;
-        bool isWildcard = false;
-    };
+        PatternByte() : value(0x00), isWildcard(true) {}
+        PatternByte(const Byte value) : value(value), isWildcard(false) {}
 
-    inline constexpr PatternByte Any = { .isWildcard = true };
+        Byte value;
+        bool isWildcard;
+    };
 
     class Pattern : public std::vector<PatternByte> {
     public:
-        Pattern(std::initializer_list<PatternByte> l) : std::vector(l) {}
+        Pattern(std::initializer_list<PatternByte> l) : std::vector<PatternByte>(l) {}
 
         bool IsMatch(const BytePtr& ptr) const;
     };
@@ -34,8 +31,12 @@ namespace PS {
     public:
         PatternStream(const Pattern& pattern, const std::string& module = "");
 
-        PatternStream HasPatternInRange(const Pattern& pattern, int64_t rangeOffset, size_t rangeLength,
-                                        bool replaceExistingMatch = false) const;
+        PatternStream HasPatternInRange(
+            const Pattern& pattern,
+            int64_t rangeOffset,
+            size_t rangeLength,
+            bool replaceExistingMatch = false
+        ) const;
 
         PatternStream AddOffset(int64_t offset) const;
 
